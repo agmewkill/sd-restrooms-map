@@ -1,1 +1,84 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Public Restrooms — San Diego</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="layout">
+    <div id="map"></div>
+
+    <aside id="panel">
+      <h2>Submit / Update</h2>
+      <div class="hint">
+        Click the map to add a point. Click an existing marker to update it.
+      </div>
+
+      <form id="surveyForm">
+        <input type="hidden" id="place_id" name="place_id" />
+        <input type="hidden" id="action" name="action" value="new" />
+
+        <label>
+          Name
+          <input id="name" name="name" placeholder="e.g., Balboa Park - Near Museum" />
+        </label>
+
+        <label>
+          Address
+          <input id="address" name="address" placeholder="Street address or nearest cross-street" />
+        </label>
+
+        <div class="row2">
+          <label>
+            Latitude
+            <input id="latitude" name="latitude" inputmode="decimal" required />
+          </label>
+          <label>
+            Longitude
+            <input id="longitude" name="longitude" inputmode="decimal" required />
+          </label>
+        </div>
+
+        <label>
+          Restroom open status
+          <select id="restroom_open_status" name="restroom_open_status">
+            <option value="">—</option>
+            <option>Open</option>
+            <option>Closed</option>
+            <option>Unknown</option>
+            <option>Temporarily Closed</option>
+          </select>
+        </label>
+
+        <label>
+          Advertised hours
+          <input id="advertised_hours" name="advertised_hours" placeholder="e.g., 8am–6pm" />
+        </label>
+
+        <div class="row3">
+          <label><input type="checkbox" id="ada_accessible" /> ADA accessible</label>
+          <label><input type="checkbox" id="gender_neutral" /> Gender neutral</label>
+          <label><input type="checkbox" id="baby_changing" /> Baby changing</label>
+        </div>
+
+        <label>
+          Notes
+          <textarea id="notes" name="notes" rows="4" placeholder="Anything helpful for the public…"></textarea>
+        </label>
+
+        <button type="submit" id="submitBtn">Submit</button>
+        <div id="status"></div>
+      </form>
+    </aside>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
 
