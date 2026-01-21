@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <title>Public Restrooms — San Diego</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -12,45 +13,47 @@
     <div id="map"></div>
 
     <aside id="panel">
+      <!-- Mobile drawer handle -->
+      <div class="drawerHeader" id="drawerHeader">
+        <div class="drawerHandle"></div>
+      </div>
+
       <h2>Contribute Information</h2>
 
       <div class="hint">
         Use the map to contribute information.<br>
-        • Click <strong>anywhere on the map</strong> to add a new restroom<br>
+        • Click <strong>anywhere on the map</strong> to suggest a new restroom<br>
         • Click an <strong>existing restroom</strong> to suggest a change<br><br>
         All submissions are reviewed before appearing on the public map.
       </div>
 
-      <div id="modeIndicator" class="mode new">Suggest a new restroom location</div>
+      <div id="modeIndicator" class="mode new">
+        Suggest a new restroom location
+      </div>
 
       <form id="surveyForm">
-        <input type="hidden" id="place_id" name="place_id" />
-        <input type="hidden" id="action" name="action" value="new" />
+        <input type="hidden" id="place_id" />
+        <input type="hidden" id="action" value="new" />
 
-        <label>
-          Name
-          <input id="name" name="name" placeholder="e.g., Balboa Park - Near Museum" />
+        <label>Name
+          <input id="name" placeholder="e.g., Balboa Park – near museum" />
         </label>
 
-        <label>
-          Address
-          <input id="address" name="address" placeholder="Street address or nearest cross-street" />
+        <label>Address
+          <input id="address" placeholder="Street or nearby landmark" />
         </label>
 
         <div class="row2">
-          <label>
-            Latitude
-            <input id="latitude" name="latitude" inputmode="decimal" required />
+          <label>Latitude
+            <input id="latitude" inputmode="decimal" required />
           </label>
-          <label>
-            Longitude
-            <input id="longitude" name="longitude" inputmode="decimal" required />
+          <label>Longitude
+            <input id="longitude" inputmode="decimal" required />
           </label>
         </div>
 
-        <label>
-          Restroom open status
-          <select id="restroom_open_status" name="restroom_open_status">
+        <label>Status
+          <select id="restroom_open_status">
             <option value="">—</option>
             <option>Open</option>
             <option>Closed</option>
@@ -59,20 +62,18 @@
           </select>
         </label>
 
-        <label>
-          Advertised hours
-          <input id="advertised_hours" name="advertised_hours" placeholder="e.g., 8am–6pm" />
+        <label>Hours
+          <input id="advertised_hours" placeholder="e.g., 8am–6pm" />
         </label>
 
         <div class="row3">
           <label><input type="checkbox" id="ada_accessible" /> ADA accessible</label>
-          <label><input type="checkbox" id="gender_neutral" /> Gender neutral</label>
+          <label><input type="checkbox" id="gender_neutral" /> Gender-neutral</label>
           <label><input type="checkbox" id="baby_changing" /> Baby changing</label>
         </div>
 
-        <label>
-          Notes
-          <textarea id="notes" name="notes" rows="4" placeholder="Anything helpful for the public…"></textarea>
+        <label>Notes
+          <textarea id="notes" rows="4"></textarea>
         </label>
 
         <button type="submit" id="submitBtn">Submit suggestion</button>
