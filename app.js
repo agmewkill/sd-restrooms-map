@@ -1,8 +1,15 @@
+// WRITE endpoint (Apps Script Web App) — for submitting survey responses
 const APPS_SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbwTUAGegDO_w2Hh1W0aPiFTmiVlYF-8zfMX_M4QQ_AyaPaB2HlETTOMq1xseZk9Y_Xpsw/exec";
 
-const BASELINE_CSV_URL = "data/restrooms.csv";
+// READ endpoint (Published-to-web CSV) — for showing submissions on the map
+const UPDATES_CSV_URL =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTqaGnxOFnazRsFkP-J3tx0cMtjDi2a8-jLHR44XnjbUMIRudAtprAmulLVCD8nDxS-LbZghRA5TFrk/pub?gid=436844958&single=true&output=csv";
 
+// Your baseline CSV in the repo (adjust if needed)
+const BASELINE_CSV_URL = "data/restrooms_baseline_public.csv";
+
+// --- Map setup ---
 const map = L.map("map").setView([32.7157, -117.1611], 12);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 19,
@@ -11,10 +18,20 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 
 const markersLayer = L.layerGroup().addTo(map);
 
+// --- Helpers ---
 function escapeHtml(s) {
   return String(s ?? "").replace(/[&<>"']/g, (c) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
   }[c]));
+}
+
+function toBool(v) {
+  const s = String(v ?? "").trim().toLowerCase();
+  return s === "true" || s === "yes" || s === "1";
 }
 
 function setFormForNew(lat, lng) {
@@ -60,13 +77,93 @@ function popupHtml(row) {
   `;
 }
 
-async function loadBaseline() {
-  const res = await fetch(BASELINE_CSV_URL, { cache: "no-store" });
+// --- Data loading ---
+async function loadCsv(url) {
+  const res = await fetch(url, { cache: "no-store" });
   const text = await res.text();
   const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
   return parsed.data;
 }
 
+async function loadBaseline() {
+  return loadCsv(BASELINE_CSV_URL);
+}
+
+async function loadUpdates() {
+  return loadCsv(UPDATES_CSV_URL);
+}
+
+// --- Merge logic ---
+// Keep only latest approved update per place_id
+function pickLatestApprovedByPlaceId(rows) {
+  const approvedWithId = rows
+    .filter(r => toBool(r.approved))
+    .filter(r => String(r.place_id || "").trim() !== "");
+
+  const byId = new Map();
+  for (const r of approvedWithId) {
+    const id = String(r.place_id).trim();
+    const t = Date.parse(r.timestamp || "") || 0;
+    const cur = byId.get(id);
+    if (!cur || t > cur._t) byId.set(id, { ...r, _t: t });
+  }
+  return byId;
+}
+
+function applyUpdateToBaselineRow(b, u) {
+  const out = { ...b };
+
+  const setIf = (key, val) => {
+    if (val === undefined || val === null) return;
+    const s = String(val).trim();
+    if (s === "") return;
+    out[key] = val;
+  };
+
+  // Text
+  setIf("name", u.name);
+  setIf("address", u.address);
+  setIf("restroom_open_status", u.restroom_open_status);
+  setIf("advertised_hours", u.advertised_hours);
+
+  // Lat/lng
+  const lat = Number(u.latitude);
+  const lng = Number(u.longitude);
+  if (Number.isFinite(lat)) out.latitude = lat;
+  if (Number.isFinite(lng)) out.longitude = lng;
+
+  // Booleans: override if provided
+  if (String(u.ada_accessible ?? "").trim() !== "") out.ada_accessible = toBool(u.ada_accessible) ? "Yes" : "No";
+  if (String(u.gender_neutral ?? "").trim() !== "") out.gender_neutral = toBool(u.gender_neutral) ? "Yes" : "No";
+  if (String(u.baby_changing ?? "").trim() !== "") out.baby_changing = toBool(u.baby_changing) ? "Yes" : "No";
+
+  return out;
+}
+
+// Approved “new points” (action=new) get added as extra markers
+function getApprovedNewPoints(rows) {
+  return rows
+    .filter(r => toBool(r.approved))
+    .filter(r => String(r.action || "").toLowerCase() === "new")
+    .filter(r => {
+      const lat = Number(r.latitude), lng = Number(r.longitude);
+      return Number.isFinite(lat) && Number.isFinite(lng);
+    })
+    .map(r => ({
+      globalid: r.place_id || "", // may be blank for new
+      name: r.name || "(New submission)",
+      address: r.address || "",
+      latitude: Number(r.latitude),
+      longitude: Number(r.longitude),
+      restroom_open_status: r.restroom_open_status || "",
+      advertised_hours: r.advertised_hours || "",
+      ada_accessible: String(r.ada_accessible ?? ""),
+      gender_neutral: String(r.gender_neutral ?? ""),
+      baby_changing: String(r.baby_changing ?? "")
+    }));
+}
+
+// --- Rendering ---
 function addMarkers(rows) {
   markersLayer.clearLayers();
 
@@ -92,12 +189,13 @@ function addMarkers(rows) {
   });
 }
 
-// click map -> new point
+// Click map -> prepare new point submission
 map.on("click", (e) => {
   setFormForNew(e.latlng.lat, e.latlng.lng);
   document.getElementById("panel").scrollIntoView({ behavior: "smooth" });
 });
 
+// --- Submit handler (writes to the sheet) ---
 document.getElementById("surveyForm").addEventListener("submit", async (evt) => {
   evt.preventDefault();
   const status = document.getElementById("status");
@@ -138,8 +236,12 @@ document.getElementById("surveyForm").addEventListener("submit", async (evt) => 
     let out;
     try { out = JSON.parse(txt); } catch { out = { ok: resp.ok, raw: txt }; }
 
-    status.textContent = out.ok ? "Submitted! Thanks — recorded." : ("Submission failed: " + (out.error || out.raw));
-    if (out.ok) evt.target.reset();
+    if (out.ok) {
+      status.textContent = "Submitted! It will appear on the map once approved.";
+      evt.target.reset();
+    } else {
+      status.textContent = "Submission failed: " + (out.error || out.raw || "Unknown error");
+    }
   } catch (err) {
     status.textContent = "Submission failed: " + String(err);
   } finally {
@@ -147,10 +249,23 @@ document.getElementById("surveyForm").addEventListener("submit", async (evt) => 
   }
 });
 
+// --- Init: load baseline + updates, merge, render ---
 (async function init() {
   const c = map.getCenter();
   setFormForNew(c.lat, c.lng);
 
   const baseline = await loadBaseline();
-  addMarkers(baseline);
+  const updates = await loadUpdates();
+
+  const latestUpdatesById = pickLatestApprovedByPlaceId(updates);
+
+  const mergedBaseline = baseline.map(b => {
+    const id = String(b.globalid || "").trim();
+    const u = latestUpdatesById.get(id);
+    return u ? applyUpdateToBaselineRow(b, u) : b;
+  });
+
+  const newPoints = getApprovedNewPoints(updates);
+
+  addMarkers([...mergedBaseline, ...newPoints]);
 })();
