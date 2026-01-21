@@ -6,17 +6,17 @@ html, body {
 
 #layout {
   display: grid;
-  grid-template-columns: 1fr 360px;
+  grid-template-columns: 1fr 380px;
   height: 100vh;
 }
 
 #map { height: 100%; }
 
 #panel {
-  border-left: 1px solid #ddd;
+  background: #fff;
   padding: 14px;
   overflow: auto;
-  background: #fff;
+  border-left: 1px solid #ddd;
 }
 
 label {
@@ -27,9 +27,9 @@ label {
 
 input, select, textarea {
   width: 100%;
-  padding: 8px;
-  box-sizing: border-box;
+  padding: 10px;
   margin-top: 6px;
+  font-size: 16px; /* prevents iOS zoom */
 }
 
 .row2 {
@@ -40,57 +40,74 @@ input, select, textarea {
 
 .row3 {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 6px;
-  margin-top: 8px;
+  gap: 8px;
 }
 
 button {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   margin-top: 12px;
+  font-size: 16px;
   cursor: pointer;
 }
 
 .hint {
   font-size: 13px;
-  color: #444;
   background: #f6f6f6;
   padding: 10px;
-  border-radius: 8px;
+  border-radius: 10px;
   margin-bottom: 10px;
-  line-height: 1.35;
 }
 
 .mode {
-  padding: 8px;
+  padding: 10px;
+  border-radius: 10px;
   margin-bottom: 10px;
-  border-radius: 6px;
-  font-size: 13px;
+  font-size: 14px;
 }
 
-.mode.new {
-  background: #eef6ff;
-  color: #084298;
-}
+.mode.new { background: #eef6ff; color: #084298; }
+.mode.update { background: #fff3cd; color: #664d03; }
 
-.mode.update {
-  background: #fff3cd;
-  color: #664d03;
-}
+#status { margin-top: 10px; font-size: 13px; }
 
-#status {
-  margin-top: 10px;
-  font-size: 13px;
-}
-
+/* ---------- MOBILE BOTTOM SHEET ---------- */
 @media (max-width: 900px) {
   #layout {
     grid-template-columns: 1fr;
-    grid-template-rows: 60vh 40vh;
   }
+
+  #map { height: 100vh; }
+
   #panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 72vh;
+    transform: translateY(calc(72vh - 64px));
+    transition: transform 180ms ease;
     border-left: none;
     border-top: 1px solid #ddd;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -10px 30px rgba(0,0,0,.15);
+    z-index: 9999;
+  }
+
+  #panel.open {
+    transform: translateY(0);
+  }
+
+  .drawerHeader {
+    padding: 8px;
+    cursor: pointer;
+  }
+
+  .drawerHandle {
+    width: 44px;
+    height: 5px;
+    background: #ccc;
+    border-radius: 999px;
+    margin: 0 auto;
   }
 }
