@@ -13,22 +13,42 @@
 
     <aside id="panel">
       <h2>Submit / Update</h2>
-      <div class="hint">Click the map to add a point. Click a marker to suggest an update.</div>
+
+      <div class="hint">
+        Click the map to add a point. Click an existing marker to suggest an update.
+        Submissions appear on the public map after review.
+      </div>
+
+      <div id="modeIndicator" class="mode new">Adding a new restroom</div>
 
       <form id="surveyForm">
-        <input type="hidden" id="place_id" />
-        <input type="hidden" id="action" value="new" />
+        <input type="hidden" id="place_id" name="place_id" />
+        <input type="hidden" id="action" name="action" value="new" />
 
-        <label>Name <input id="name" /></label>
-        <label>Address <input id="address" /></label>
+        <label>
+          Name
+          <input id="name" name="name" placeholder="e.g., Balboa Park - Near Museum" />
+        </label>
+
+        <label>
+          Address
+          <input id="address" name="address" placeholder="Street address or nearest cross-street" />
+        </label>
 
         <div class="row2">
-          <label>Latitude <input id="latitude" required /></label>
-          <label>Longitude <input id="longitude" required /></label>
+          <label>
+            Latitude
+            <input id="latitude" name="latitude" inputmode="decimal" required />
+          </label>
+          <label>
+            Longitude
+            <input id="longitude" name="longitude" inputmode="decimal" required />
+          </label>
         </div>
 
-        <label>Status
-          <select id="restroom_open_status">
+        <label>
+          Restroom open status
+          <select id="restroom_open_status" name="restroom_open_status">
             <option value="">—</option>
             <option>Open</option>
             <option>Closed</option>
@@ -37,7 +57,10 @@
           </select>
         </label>
 
-        <label>Hours <input id="advertised_hours" /></label>
+        <label>
+          Advertised hours
+          <input id="advertised_hours" name="advertised_hours" placeholder="e.g., 8am–6pm" />
+        </label>
 
         <div class="row3">
           <label><input type="checkbox" id="ada_accessible" /> ADA accessible</label>
@@ -45,10 +68,13 @@
           <label><input type="checkbox" id="baby_changing" /> Baby changing</label>
         </div>
 
-        <label>Notes <textarea id="notes" rows="4"></textarea></label>
+        <label>
+          Notes
+          <textarea id="notes" name="notes" rows="4" placeholder="Anything helpful for the public…"></textarea>
+        </label>
 
         <button type="submit" id="submitBtn">Submit</button>
-        <div id="status"></div>
+        <div id="status" aria-live="polite"></div>
       </form>
     </aside>
   </div>
