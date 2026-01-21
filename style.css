@@ -13,4 +13,3 @@ button { width: 100%; padding: 10px; margin-top: 12px; cursor: pointer; }
   #layout { grid-template-columns: 1fr; grid-template-rows: 60vh 40vh; }
   #panel { border-left: none; border-top: 1px solid #ddd; }
 }
-
