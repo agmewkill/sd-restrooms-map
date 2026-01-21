@@ -6,8 +6,8 @@ const APPS_SCRIPT_URL =
 const UPDATES_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTqaGnxOFnazRsFkP-J3tx0cMtjDi2a8-jLHR44XnjbUMIRudAtprAmulLVCD8nDxS-LbZghRA5TFrk/pub?gid=436844958&single=true&output=csv";
 
-// 
-const BASELINE_CSV_URL = "data/restrooms.csv";
+// Baseline CSV in your repo
+const BASELINE_CSV_URL = "data/restrooms_baseline_public.csv";
 
 // --- Map setup ---
 const map = L.map("map").setView([32.7157, -117.1611], 12);
@@ -34,11 +34,25 @@ function toBool(v) {
   return s === "true" || s === "yes" || s === "1";
 }
 
+function setModeIndicator(mode) {
+  const m = document.getElementById("modeIndicator");
+  if (!m) return;
+
+  if (mode === "update") {
+    m.textContent = "Suggesting an update to an existing restroom";
+    m.className = "mode update";
+  } else {
+    m.textContent = "Adding a new restroom";
+    m.className = "mode new";
+  }
+}
+
 function setFormForNew(lat, lng) {
   document.getElementById("place_id").value = "";
   document.getElementById("action").value = "new";
   document.getElementById("latitude").value = lat.toFixed(6);
   document.getElementById("longitude").value = lng.toFixed(6);
+  setModeIndicator("new");
 }
 
 function setFormForUpdate(placeId, row) {
@@ -56,6 +70,8 @@ function setFormForUpdate(placeId, row) {
   document.getElementById("ada_accessible").checked = yes(row.ada_accessible);
   document.getElementById("gender_neutral").checked = yes(row.gender_neutral);
   document.getElementById("baby_changing").checked = yes(row.baby_changing);
+
+  setModeIndicator("update");
 }
 
 function popupHtml(row) {
@@ -72,7 +88,9 @@ function popupHtml(row) {
         ${open ? `Status: ${escapeHtml(open)}<br/>` : ""}
         ${hours ? `Hours: ${escapeHtml(hours)}<br/>` : ""}
       </div>
-      <button data-action="update" style="margin-top:8px; width:100%">Suggest an update</button>
+      <button data-action="update" style="margin-top:8px; width:100%">
+        Suggest an update (reviewed)
+      </button>
     </div>
   `;
 }
@@ -150,7 +168,7 @@ function getApprovedNewPoints(rows) {
       return Number.isFinite(lat) && Number.isFinite(lng);
     })
     .map(r => ({
-      globalid: r.place_id || "", // may be blank for new
+      globalid: r.place_id || "",
       name: r.name || "(New submission)",
       address: r.address || "",
       latitude: Number(r.latitude),
@@ -203,6 +221,8 @@ document.getElementById("surveyForm").addEventListener("submit", async (evt) => 
 
   status.textContent = "";
   btn.disabled = true;
+  const oldBtnText = btn.textContent;
+  btn.textContent = "Submitting…";
 
   const payload = {
     place_id: document.getElementById("place_id").value.trim(),
@@ -219,9 +239,11 @@ document.getElementById("surveyForm").addEventListener("submit", async (evt) => 
     notes: document.getElementById("notes").value.trim(),
   };
 
+  // UX guard: encourage choosing a location via map click
   if (!Number.isFinite(payload.latitude) || !Number.isFinite(payload.longitude)) {
-    status.textContent = "Please provide valid latitude/longitude.";
+    status.textContent = "Please click the map to choose a location (valid latitude/longitude required).";
     btn.disabled = false;
+    btn.textContent = oldBtnText;
     return;
   }
 
@@ -237,8 +259,10 @@ document.getElementById("surveyForm").addEventListener("submit", async (evt) => 
     try { out = JSON.parse(txt); } catch { out = { ok: resp.ok, raw: txt }; }
 
     if (out.ok) {
-      status.textContent = "Submitted! It will appear on the map once approved.";
+      status.textContent = "Thanks! Your submission was received and will appear on the map after review.";
       evt.target.reset();
+      // keep mode indicator consistent after reset
+      setModeIndicator("new");
     } else {
       status.textContent = "Submission failed: " + (out.error || out.raw || "Unknown error");
     }
@@ -246,6 +270,7 @@ document.getElementById("surveyForm").addEventListener("submit", async (evt) => 
     status.textContent = "Submission failed: " + String(err);
   } finally {
     btn.disabled = false;
+    btn.textContent = oldBtnText;
   }
 });
 
