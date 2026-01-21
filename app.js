@@ -39,10 +39,10 @@ function setModeIndicator(mode) {
   if (!m) return;
 
   if (mode === "update") {
-    m.textContent = "Suggesting an update to an existing restroom";
+    m.textContent = "Suggest a change to this restroom";
     m.className = "mode update";
   } else {
-    m.textContent = "Adding a new restroom";
+    m.textContent = "Suggest a new restroom location";
     m.className = "mode new";
   }
 }
@@ -89,7 +89,7 @@ function popupHtml(row) {
         ${hours ? `Hours: ${escapeHtml(hours)}<br/>` : ""}
       </div>
       <button data-action="update" style="margin-top:8px; width:100%">
-        Suggest an update (reviewed)
+        Suggest a change (reviewed)
       </button>
     </div>
   `;
@@ -222,7 +222,7 @@ document.getElementById("surveyForm").addEventListener("submit", async (evt) => 
   status.textContent = "";
   btn.disabled = true;
   const oldBtnText = btn.textContent;
-  btn.textContent = "Submitting…";
+  btn.textContent = "Submitting suggestion…";
 
   const payload = {
     place_id: document.getElementById("place_id").value.trim(),
@@ -239,7 +239,6 @@ document.getElementById("surveyForm").addEventListener("submit", async (evt) => 
     notes: document.getElementById("notes").value.trim(),
   };
 
-  // UX guard: encourage choosing a location via map click
   if (!Number.isFinite(payload.latitude) || !Number.isFinite(payload.longitude)) {
     status.textContent = "Please click the map to choose a location (valid latitude/longitude required).";
     btn.disabled = false;
@@ -261,7 +260,6 @@ document.getElementById("surveyForm").addEventListener("submit", async (evt) => 
     if (out.ok) {
       status.textContent = "Thanks! Your submission was received and will appear on the map after review.";
       evt.target.reset();
-      // keep mode indicator consistent after reset
       setModeIndicator("new");
     } else {
       status.textContent = "Submission failed: " + (out.error || out.raw || "Unknown error");
