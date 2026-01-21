@@ -1,4 +1,4 @@
-const APPS_SCRIPT_URL = ""; // paste your Apps Script Web App URL here later
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwTUAGegDO_w2Hh1W0aPiFTmiVlYF-8zfMX_M4QQ_AyaPaB2HlETTOMq1xseZk9Y_Xpsw/exec";
 const BASELINE_CSV_URL = "data/restrooms.csv";
 
 const map = L.map("map").setView([32.7157, -117.1611], 12);
