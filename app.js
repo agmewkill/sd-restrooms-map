@@ -6,8 +6,8 @@ const APPS_SCRIPT_URL =
 const UPDATES_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vTqaGnxOFnazRsFkP-J3tx0cMtjDi2a8-jLHR44XnjbUMIRudAtprAmulLVCD8nDxS-LbZghRA5TFrk/pub?gid=436844958&single=true&output=csv";
 
-// Your baseline CSV in the repo (adjust if needed)
-const BASELINE_CSV_URL = "data/restrooms_baseline_public.csv";
+// 
+const BASELINE_CSV_URL = "data/restrooms.csv";
 
 // --- Map setup ---
 const map = L.map("map").setView([32.7157, -117.1611], 12);
