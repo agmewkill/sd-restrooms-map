@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <title>Public Restrooms — San Diego</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -14,38 +13,22 @@
 
     <aside id="panel">
       <h2>Submit / Update</h2>
-      <div class="hint">
-        Click the map to add a point. Click an existing marker to update it.
-      </div>
+      <div class="hint">Click the map to add a point. Click a marker to suggest an update.</div>
 
       <form id="surveyForm">
-        <input type="hidden" id="place_id" name="place_id" />
-        <input type="hidden" id="action" name="action" value="new" />
+        <input type="hidden" id="place_id" />
+        <input type="hidden" id="action" value="new" />
 
-        <label>
-          Name
-          <input id="name" name="name" placeholder="e.g., Balboa Park - Near Museum" />
-        </label>
-
-        <label>
-          Address
-          <input id="address" name="address" placeholder="Street address or nearest cross-street" />
-        </label>
+        <label>Name <input id="name" /></label>
+        <label>Address <input id="address" /></label>
 
         <div class="row2">
-          <label>
-            Latitude
-            <input id="latitude" name="latitude" inputmode="decimal" required />
-          </label>
-          <label>
-            Longitude
-            <input id="longitude" name="longitude" inputmode="decimal" required />
-          </label>
+          <label>Latitude <input id="latitude" required /></label>
+          <label>Longitude <input id="longitude" required /></label>
         </div>
 
-        <label>
-          Restroom open status
-          <select id="restroom_open_status" name="restroom_open_status">
+        <label>Status
+          <select id="restroom_open_status">
             <option value="">—</option>
             <option>Open</option>
             <option>Closed</option>
@@ -54,10 +37,7 @@
           </select>
         </label>
 
-        <label>
-          Advertised hours
-          <input id="advertised_hours" name="advertised_hours" placeholder="e.g., 8am–6pm" />
-        </label>
+        <label>Hours <input id="advertised_hours" /></label>
 
         <div class="row3">
           <label><input type="checkbox" id="ada_accessible" /> ADA accessible</label>
@@ -65,10 +45,7 @@
           <label><input type="checkbox" id="baby_changing" /> Baby changing</label>
         </div>
 
-        <label>
-          Notes
-          <textarea id="notes" name="notes" rows="4" placeholder="Anything helpful for the public…"></textarea>
-        </label>
+        <label>Notes <textarea id="notes" rows="4"></textarea></label>
 
         <button type="submit" id="submitBtn">Submit</button>
         <div id="status"></div>
@@ -81,4 +58,3 @@
   <script src="app.js"></script>
 </body>
 </html>
-
