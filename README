@@ -1,1 +1,71 @@
-This repository contains the original csv of bathrooms across the county and the Leaflet map. 
+# Public Restrooms Map — San Diego
+
+An interactive, public-facing map that displays restroom locations in San Diego and allows community members to **suggest new locations or updates**. All submissions are **reviewed before appearing on the map**.
+
+This project is designed to be:
+- Public and accessible
+- Low-cost and maintainable
+- Transparent and auditable
+- Friendly to non-technical reviewers
+
+---
+
+## What this project does
+
+- Displays a **baseline dataset** of public restrooms on an interactive map
+- Allows the public to:
+  - Suggest a **new restroom location**
+  - Suggest a **change to an existing restroom**
+- Collects submissions through a custom web form
+- Stores submissions in Google Sheets
+- Shows **only approved submissions** on the public map
+
+The map and form are hosted as a **static website** using GitHub Pages.
+
+---
+
+## Live map
+https://agmewkill.github.io/sd-restrooms-map/
+
+### Key principles
+- Baseline data is **never overwritten**
+- All public input is **append-only**
+- Updates are merged using a stable internal ID (`GlobalID`)
+- Approval is required before changes appear publicly
+
+## How the contribution process works
+
+This project uses a **reviewed contribution model**. Public users can suggest information, but no changes appear on the map until they are reviewed and approved.
+
+### Step 1: A user makes a suggestion
+A visitor to the map can:
+- Click **anywhere on the map** to suggest a new restroom location, or
+- Click an **existing restroom marker** to suggest a change (for example: hours, accessibility, or status)
+
+The user fills out a short form directly on the site and submits their suggestion.
+
+---
+
+### Step 2: The suggestion is recorded (but not public yet)
+When a suggestion is submitted:
+- It is sent to a Google Sheet via a secure endpoint
+- Each submission is saved as a **new row**
+- Submissions are marked `approved = FALSE` by default
+
+At this stage:
+- Nothing on the public map changes
+- The baseline dataset remains untouched
+- A complete submission history is preserved
+
+---
+
+### Step 3: Review and approval
+Project maintainers periodically review new submissions in the Google Sheet.
+
+For each submission, maintainers may:
+- Verify the information
+- Compare it with the baseline data
+- Add review notes (optional)
+- Approve or reject the submission
+
+To approve a submission, the maintainer sets:
