@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   /* ---------------- CONFIG ---------------- */
   const APPS_SCRIPT_URL =
-    "https://script.google.com/macros/s/AKfycbxZ944niJOd19Wn8UIkadw9b7rFkjATSbwG7FWTLhUts3Wj9f7O2bg1edhhDm5iZrwW/exec";
+    "https://script.google.com/macros/s/AKfycbzwaED1ncgYe5hJ0nH9VBJkKiPP6CBNd1jup9GhlJUgXn8wraoTW6FmqYI-Pl07_eilbQ/exec";
 
   const UPDATES_CSV_URL =
     "https://docs.google.com/spreadsheets/d/e/2PACX-1vTqaGnxOFnazRsFkP-J3tx0cMtjDi2a8-jLHR44XnjbUMIRudAtprAmulLVCD8nDxS-LbZghRA5TFrk/pub?gid=436844958&single=true&output=csv";
