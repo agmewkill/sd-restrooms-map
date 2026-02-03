@@ -60,7 +60,7 @@
 
       <div id="modeIndicator" class="mode new" hidden></div>
 
-      <form id="surveyForm">
+      <form id="surveyForm" autocomplete="on">
         <input type="hidden" id="place_id" />
         <input type="hidden" id="action" value="new" />
 
@@ -68,27 +68,27 @@
           <summary>Basics</summary>
 
           <label>Date and time of audit *
-            <input id="audit_datetime" type="datetime-local" required />
+            <input id="audit_datetime" type="datetime-local" required autocomplete="off" />
           </label>
 
           <label>Name of Restroom *
-            <input id="restroom_name" required />
+            <input id="restroom_name" required autocomplete="organization" />
           </label>
 
           <label>Researcher Name *
-            <input id="researcher_name" required />
+            <input id="researcher_name" required autocomplete="name" />
           </label>
 
           <label>Address / Nearby landmark
-            <input id="address" />
+            <input id="address" autocomplete="street-address" />
           </label>
 
           <div class="row2">
             <label>Latitude *
-              <input id="latitude" required />
+              <input id="latitude" required inputmode="decimal" />
             </label>
             <label>Longitude *
-              <input id="longitude" required />
+              <input id="longitude" required inputmode="decimal" />
             </label>
           </div>
         </details>
@@ -105,7 +105,7 @@
           </label>
 
           <label>What are the hours? *
-            <input id="advertised_hours" required />
+            <input id="advertised_hours" required autocomplete="off" />
           </label>
 
           <label>How is this bathroom accessed? *
@@ -208,7 +208,6 @@
           </label>
         </details>
 
-        <!-- ✅ IMPORTANT: add the id -->
         <button type="submit" id="submitBtn">Submit suggestion</button>
         <div id="status" aria-live="polite"></div>
       </form>
@@ -218,14 +217,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <!-- ✅ TEMP: prove scripts load (remove after testing) -->
-  <script>
-    alert("inline script ran");
-  </script>
-
-  <script src="./app.js?v=20260203"
-        onload="alert('app.js tag loaded')"
-        onerror="alert('app.js failed')"></script>
-
+  <!-- load the app (cache-busted). update the v param when you change the JS -->
+  <script src="./app.js?v=final"></script>
 </body>
 </html>
