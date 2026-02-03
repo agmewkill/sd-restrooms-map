@@ -19,8 +19,14 @@ const markersLayer = L.layerGroup().addTo(map);
 const isMobile = () => window.matchMedia("(max-width: 900px)").matches;
 const panel = document.getElementById("panel");
 
-function openPanel() { if (isMobile()) panel.classList.add("open"); }
-function togglePanel() { if (isMobile()) panel.classList.toggle("open"); }
+function openPanel() {
+  if (isMobile()) panel.classList.add("open");
+  setTimeout(() => map.invalidateSize(), 250);
+}
+function togglePanel() {
+  if (isMobile()) panel.classList.toggle("open");
+  setTimeout(() => map.invalidateSize(), 250);
+}
 
 document.getElementById("drawerHeader")
   ?.addEventListener("click", togglePanel);
@@ -40,17 +46,6 @@ function setMode(mode) {
     m.textContent = "Suggest a new restroom location";
     m.className = "mode new";
   }
-}
-
-function getRadioValue(name) {
-  const el = document.querySelector(`input[name="${name}"]:checked`);
-  return el ? el.value : "";
-}
-
-function setRadioValue(name, value) {
-  if (!value) return;
-  const el = document.querySelector(`input[name="${name}"][value="${CSS.escape(value)}"]`);
-  if (el) el.checked = true;
 }
 
 /* ---------------- CSV LOAD ---------------- */
@@ -91,12 +86,11 @@ function drawMarkers(rows) {
 
 /* ---------------- FORM ---------------- */
 function fillForm(r, mode) {
-  // core
   place_id.value = r.globalid || r.place_id || "";
   action.value = mode;
   setMode(mode);
 
-  // audit + identity
+  // basics
   audit_datetime.value = r.audit_datetime || "";
   restroom_name.value = r.restroom_name || r.name || "";
   researcher_name.value = r.researcher_name || "";
@@ -106,15 +100,15 @@ function fillForm(r, mode) {
   latitude.value = r.latitude || "";
   longitude.value = r.longitude || "";
 
-  // visit/ops
+  // access/ops
   open_when_visited.value = r.open_when_visited || "";
   advertised_hours.value = r.advertised_hours || r.hours || "";
 
-  // radios
-  setRadioValue("access_method", r.access_method || "");
-  setRadioValue("findability", r.findability || "");
+  // dropdowns (changed from radios)
+  access_method.value = r.access_method || "";
+  findability.value = r.findability || "";
 
-  // dropdown amenities/safety
+  // yes/no selects (no unknown)
   gender_neutral.value = r.gender_neutral || "";
   menstrual_products.value = r.menstrual_products || "";
   showers_available.value = r.showers_available || "";
@@ -138,33 +132,28 @@ map.on("click", e => {
 /* ---------------- SUBMIT ---------------- */
 document.getElementById("surveyForm").onsubmit = async e => {
   e.preventDefault();
-
   const btn = submitBtn;
   btn.textContent = "Submitting…";
   btn.disabled = true;
 
   const payload = {
-    // existing routing fields
     place_id: place_id.value,
     action: action.value,
 
-    // audit metadata
     audit_datetime: audit_datetime.value,
     restroom_name: restroom_name.value,
     researcher_name: researcher_name.value,
 
-    // location
     address: address.value,
     latitude: latitude.value,
     longitude: longitude.value,
 
-    // visit/ops
     open_when_visited: open_when_visited.value,
     advertised_hours: advertised_hours.value,
-    access_method: getRadioValue("access_method"),
-    findability: getRadioValue("findability"),
 
-    // amenities/safety (Yes/No/Unknown)
+    access_method: access_method.value,
+    findability: findability.value,
+
     gender_neutral: gender_neutral.value,
     menstrual_products: menstrual_products.value,
     showers_available: showers_available.value,
@@ -173,7 +162,6 @@ document.getElementById("surveyForm").onsubmit = async e => {
     security_cameras: security_cameras.value,
     ada_accessible: ada_accessible.value,
 
-    // open-ended
     access_barriers: access_barriers.value,
     overall_impressions: overall_impressions.value,
     outside_context: outside_context.value,
@@ -206,7 +194,6 @@ document.getElementById("surveyForm").onsubmit = async e => {
   const updates = (await loadCsv(UPDATES_CSV_URL))
     .filter(r => toBool(r.approved));
 
-  // keep most recent update per place_id
   const latest = {};
   updates.forEach(u => {
     const key = u.place_id;
@@ -216,7 +203,6 @@ document.getElementById("surveyForm").onsubmit = async e => {
     }
   });
 
-  // merge latest update onto baseline row by globalid
   const merged = baseline.map(b => latest[b.globalid]
     ? { ...b, ...latest[b.globalid] }
     : b
