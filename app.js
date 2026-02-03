@@ -1,5 +1,5 @@
-/* app.js (cleaned) */
-/* — boot after DOM ready, initialize map early, safe element lookups, submit handler, CSV merge — */
+/* app.js (with global map + resize/load invalidateSize) */
+/* Boot after DOM ready, initialize map early, safe element lookups, submit handler, CSV merge */
 
 document.addEventListener("DOMContentLoaded", () => {
   /* ---------------- CONFIG ---------------- */
@@ -60,12 +60,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ---------------- MAP (init early) ---------------- */
   const map = L.map("map").setView([32.7157, -117.1611], 12);
+
+  // Expose map globally so console or other scripts can call map.invalidateSize()
+  window.map = map;
+
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
     attribution: "&copy; OpenStreetMap contributors"
   }).addTo(map);
 
   const markersLayer = L.layerGroup().addTo(map);
+  // expose markersLayer too
+  window.markersLayer = markersLayer;
+
+  /* Ensure Leaflet recalculates tile sizes after layout changes */
+  window.addEventListener('load', () => setTimeout(() => window.map?.invalidateSize(), 250));
+  window.addEventListener('resize', () => setTimeout(() => window.map?.invalidateSize(), 120));
 
   /* ---------------- PANEL helpers ---------------- */
   const isMobile = () => window.matchMedia("(max-width: 900px)").matches;
