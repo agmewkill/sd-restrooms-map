@@ -1,3 +1,4 @@
+/* ================= CONFIG ================= */
 const APPS_SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbwTUAGegDO_w2Hh1W0aPiFTmiVlYF-8zfMX_M4QQ_AyaPaB2HlETTOMq1xseZk9Y_Xpsw/exec";
 
@@ -6,8 +7,50 @@ const UPDATES_CSV_URL =
 
 const BASELINE_CSV_URL = "data/restrooms_baseline_public.csv";
 
-/* ---------------- MAP ---------------- */
+/* ================= HELPERS ================= */
+const $ = (id) => document.getElementById(id);
+const toBool = v => ["true","yes","1"].includes(String(v).toLowerCase());
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c =>
+  ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])
+);
+
+/* ================= ELEMENTS ================= */
+const panel = $("panel");
+const form = $("surveyForm");
+const submitBtn = $("submitBtn");
+const statusEl = $("status");
+
+const placeIdEl = $("place_id");
+const actionEl = $("action");
+
+const auditDatetimeEl = $("audit_datetime");
+const restroomNameEl = $("restroom_name");
+const researcherNameEl = $("researcher_name");
+const addressEl = $("address");
+const latEl = $("latitude");
+const lngEl = $("longitude");
+
+const openWhenVisitedEl = $("open_when_visited");
+const hoursEl = $("advertised_hours");
+const accessMethodEl = $("access_method");
+const findabilityEl = $("findability");
+
+const genderNeutralEl = $("gender_neutral");
+const menstrualProductsEl = $("menstrual_products");
+const showersEl = $("showers_available");
+const waterRefillEl = $("water_refill_nearby");
+const signageEl = $("visible_signage");
+const camerasEl = $("security_cameras");
+const adaEl = $("ada_accessible");
+
+const accessBarriersEl = $("access_barriers");
+const impressionsEl = $("overall_impressions");
+const outsideEl = $("outside_context");
+const notesEl = $("notes");
+
+/* ================= MAP ================= */
 const map = L.map("map").setView([32.7157, -117.1611], 12);
+
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 19,
   attribution: "&copy; OpenStreetMap contributors"
@@ -15,46 +58,41 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 
 const markersLayer = L.layerGroup().addTo(map);
 
-/* ---------------- MOBILE PANEL ---------------- */
+/* ================= PANEL ================= */
 const isMobile = () => window.matchMedia("(max-width: 900px)").matches;
-const panel = document.getElementById("panel");
 
 function openPanel() {
   if (isMobile()) panel.classList.add("open");
   setTimeout(() => map.invalidateSize(), 250);
 }
+
 function togglePanel() {
-  if (isMobile()) panel.classList.toggle("open");
+  if (!isMobile()) return;
+  panel.classList.toggle("open");
   setTimeout(() => map.invalidateSize(), 250);
 }
 
-document.getElementById("drawerHeader")
-  ?.addEventListener("click", togglePanel);
+$("drawerHeader")?.addEventListener("click", togglePanel);
 
-/* ---------------- HELPERS ---------------- */
-const toBool = v => ["true","yes","1"].includes(String(v).toLowerCase());
-const esc = s => String(s ?? "").replace(/[&<>"']/g, c =>
-  ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])
-);
-
+/* ================= MODE ================= */
 function setMode(mode) {
-  const m = document.getElementById("modeIndicator");
+  const m = $("modeIndicator");
+  if (!m) return;
+
   if (mode === "update") {
-    m.textContent = "Suggest a change to this restroom";
     m.className = "mode update";
   } else {
-    m.textContent = "Suggest a new restroom location";
     m.className = "mode new";
   }
 }
 
-/* ---------------- CSV LOAD ---------------- */
+/* ================= CSV ================= */
 async function loadCsv(url) {
   const t = await (await fetch(url)).text();
-  return Papa.parse(t, { header:true, skipEmptyLines:true }).data;
+  return Papa.parse(t, { header: true, skipEmptyLines: true }).data;
 }
 
-/* ---------------- MARKERS ---------------- */
+/* ================= MARKERS ================= */
 function popupHtml(r) {
   return `
     <strong>${esc(r.restroom_name || r.name)}</strong><br>
@@ -66,11 +104,13 @@ function popupHtml(r) {
 
 function drawMarkers(rows) {
   markersLayer.clearLayers();
+
   rows.forEach(r => {
-    const lat = +r.latitude, lng = +r.longitude;
+    const lat = +r.latitude;
+    const lng = +r.longitude;
     if (!lat || !lng) return;
 
-    const m = L.marker([lat,lng]).addTo(markersLayer);
+    const m = L.marker([lat, lng]).addTo(markersLayer);
     m.bindPopup(popupHtml(r));
 
     m.on("popupopen", e => {
@@ -84,111 +124,118 @@ function drawMarkers(rows) {
   });
 }
 
-/* ---------------- FORM ---------------- */
+/* ================= FORM FILL ================= */
 function fillForm(r, mode) {
-  place_id.value = r.globalid || r.place_id || "";
-  action.value = mode;
+  placeIdEl.value = r.globalid || r.place_id || "";
+  actionEl.value = mode;
   setMode(mode);
 
-  // basics
-  audit_datetime.value = r.audit_datetime || "";
-  restroom_name.value = r.restroom_name || r.name || "";
-  researcher_name.value = r.researcher_name || "";
+  auditDatetimeEl.value = r.audit_datetime || "";
+  restroomNameEl.value = r.restroom_name || r.name || "";
+  researcherNameEl.value = r.researcher_name || "";
 
-  // location
-  address.value = r.address || "";
-  latitude.value = r.latitude || "";
-  longitude.value = r.longitude || "";
+  addressEl.value = r.address || "";
+  latEl.value = r.latitude || "";
+  lngEl.value = r.longitude || "";
 
-  // access/ops
-  open_when_visited.value = r.open_when_visited || "";
-  advertised_hours.value = r.advertised_hours || r.hours || "";
+  openWhenVisitedEl.value = r.open_when_visited || "";
+  hoursEl.value = r.advertised_hours || r.hours || "";
 
-  // dropdowns (changed from radios)
-  access_method.value = r.access_method || "";
-  findability.value = r.findability || "";
+  accessMethodEl.value = r.access_method || "";
+  findabilityEl.value = r.findability || "";
 
-  // yes/no selects (no unknown)
-  gender_neutral.value = r.gender_neutral || "";
-  menstrual_products.value = r.menstrual_products || "";
-  showers_available.value = r.showers_available || "";
-  water_refill_nearby.value = r.water_refill_nearby || "";
-  visible_signage.value = r.visible_signage || "";
-  security_cameras.value = r.security_cameras || "";
-  ada_accessible.value = r.ada_accessible || "";
+  genderNeutralEl.value = r.gender_neutral || "";
+  menstrualProductsEl.value = r.menstrual_products || "";
+  showersEl.value = r.showers_available || "";
+  waterRefillEl.value = r.water_refill_nearby || "";
+  signageEl.value = r.visible_signage || "";
+  camerasEl.value = r.security_cameras || "";
+  adaEl.value = r.ada_accessible || "";
 
-  // open-ended
-  access_barriers.value = r.access_barriers || "";
-  overall_impressions.value = r.overall_impressions || "";
-  outside_context.value = r.outside_context || "";
-  notes.value = r.notes || "";
+  accessBarriersEl.value = r.access_barriers || "";
+  impressionsEl.value = r.overall_impressions || "";
+  outsideEl.value = r.outside_context || "";
+  notesEl.value = r.notes || "";
 }
 
+/* ================= MAP CLICK ================= */
 map.on("click", e => {
-  fillForm({ latitude:e.latlng.lat, longitude:e.latlng.lng }, "new");
+  fillForm({ latitude: e.latlng.lat, longitude: e.latlng.lng }, "new");
   openPanel();
 });
 
-/* ---------------- SUBMIT ---------------- */
-document.getElementById("surveyForm").onsubmit = async e => {
+/* ================= SUBMIT ================= */
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
-  const btn = submitBtn;
-  btn.textContent = "Submitting…";
-  btn.disabled = true;
+
+  // iPhone Safari validation
+  if (!form.reportValidity()) {
+    const invalid = form.querySelector(":invalid");
+    if (invalid) {
+      invalid.closest("details")?.open = true;
+      invalid.scrollIntoView({ behavior: "smooth", block: "center" });
+      invalid.focus({ preventScroll: true });
+    }
+    return;
+  }
+
+  submitBtn.textContent = "Submitting…";
+  submitBtn.disabled = true;
 
   const payload = {
-    place_id: place_id.value,
-    action: action.value,
+    place_id: placeIdEl.value,
+    action: actionEl.value,
 
-    audit_datetime: audit_datetime.value,
-    restroom_name: restroom_name.value,
-    researcher_name: researcher_name.value,
+    audit_datetime: auditDatetimeEl.value,
+    restroom_name: restroomNameEl.value,
+    researcher_name: researcherNameEl.value,
 
-    address: address.value,
-    latitude: latitude.value,
-    longitude: longitude.value,
+    address: addressEl.value,
+    latitude: latEl.value,
+    longitude: lngEl.value,
 
-    open_when_visited: open_when_visited.value,
-    advertised_hours: advertised_hours.value,
+    open_when_visited: openWhenVisitedEl.value,
+    advertised_hours: hoursEl.value,
 
-    access_method: access_method.value,
-    findability: findability.value,
+    access_method: accessMethodEl.value,
+    findability: findabilityEl.value,
 
-    gender_neutral: gender_neutral.value,
-    menstrual_products: menstrual_products.value,
-    showers_available: showers_available.value,
-    water_refill_nearby: water_refill_nearby.value,
-    visible_signage: visible_signage.value,
-    security_cameras: security_cameras.value,
-    ada_accessible: ada_accessible.value,
+    gender_neutral: genderNeutralEl.value,
+    menstrual_products: menstrualProductsEl.value,
+    showers_available: showersEl.value,
+    water_refill_nearby: waterRefillEl.value,
+    visible_signage: signageEl.value,
+    security_cameras: camerasEl.value,
+    ada_accessible: adaEl.value,
 
-    access_barriers: access_barriers.value,
-    overall_impressions: overall_impressions.value,
-    outside_context: outside_context.value,
-    notes: notes.value
+    access_barriers: accessBarriersEl.value,
+    overall_impressions: impressionsEl.value,
+    outside_context: outsideEl.value,
+    notes: notesEl.value
   };
 
   try {
     await fetch(APPS_SCRIPT_URL, {
-      method:"POST",
-      headers:{ "Content-Type":"text/plain" },
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
       body: JSON.stringify(payload)
     });
 
-    status.textContent = "Thanks! Your suggestion will appear after review.";
-    btn.textContent = "Submit suggestion";
-    btn.disabled = false;
-    e.target.reset();
+    statusEl.textContent = "Thanks! Your suggestion will appear after review.";
+    submitBtn.textContent = "Submit suggestion";
+    submitBtn.disabled = false;
+    form.reset();
     setMode("new");
+
   } catch (err) {
     console.error(err);
-    status.textContent = "Something went wrong submitting. Please try again.";
-    btn.textContent = "Submit suggestion";
-    btn.disabled = false;
+    statusEl.textContent = "Submit failed. Please check your connection and try again.";
+    submitBtn.textContent = "Submit suggestion";
+    submitBtn.disabled = false;
   }
-};
+});
 
-/* ---------------- INIT ---------------- */
+/* ================= INIT ================= */
 (async () => {
   const baseline = await loadCsv(BASELINE_CSV_URL);
   const updates = (await loadCsv(UPDATES_CSV_URL))
@@ -196,39 +243,16 @@ document.getElementById("surveyForm").onsubmit = async e => {
 
   const latest = {};
   updates.forEach(u => {
-    const key = u.place_id;
-    if (!key) return;
-    if (!latest[key] || Date.parse(u.timestamp) > Date.parse(latest[key].timestamp)) {
-      latest[key] = u;
+    if (!u.place_id) return;
+    if (!latest[u.place_id] ||
+        Date.parse(u.timestamp) > Date.parse(latest[u.place_id].timestamp)) {
+      latest[u.place_id] = u;
     }
   });
 
-  const merged = baseline.map(b => latest[b.globalid]
-    ? { ...b, ...latest[b.globalid] }
-    : b
+  const merged = baseline.map(b =>
+    latest[b.globalid] ? { ...b, ...latest[b.globalid] } : b
   );
 
   drawMarkers(merged);
 })();
-// iPhone-friendly: reveal what field is blocking submit
-const form = document.getElementById("surveyForm");
-const submit = document.getElementById("submitBtn") || form.querySelector('button[type="submit"]');
-
-submit.addEventListener("click", () => {
-  // Triggers built-in validation UI
-  if (form.reportValidity()) return;
-
-  // Find first invalid field and open its <details>
-  const firstInvalid = form.querySelector(":invalid");
-  if (firstInvalid) {
-    const details = firstInvalid.closest("details");
-    if (details) details.open = true;
-
-    // Make it obvious which field is failing
-    firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
-    firstInvalid.focus({ preventScroll: true });
-
-    // Temporary: also show its id so you can fix fast
-    alert("Missing/invalid field: " + (firstInvalid.id || firstInvalid.name || firstInvalid.tagName));
-  }
-});
