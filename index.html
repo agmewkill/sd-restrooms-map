@@ -223,7 +223,9 @@
     alert("inline script ran");
   </script>
 
-  <!-- ✅ cache-bust so iPhone loads the newest JS -->
-  <script src="./app.js?v=7"></script>
+  <script src="./app.js?v=20260203"
+        onload="alert('app.js tag loaded')"
+        onerror="alert('app.js failed')"></script>
+
 </body>
 </html>
