@@ -13,6 +13,7 @@ html, body {
 
 #map {
   height: 100vh;
+  width: 100%;
   min-width: 0;
 }
 
@@ -125,10 +126,8 @@ summary {
 
 summary::-webkit-details-marker { display: none; }
 
-/* Toggle hidden by default on desktop */
-.mobileToggle {
-  display: none;
-}
+/* Toggle hidden by default on desktop (you removed the button) */
+.mobileToggle { display: none; }
 
 /* ---------- MOBILE BOTTOM SHEET ---------- */
 @media (max-width: 900px) {
@@ -151,6 +150,7 @@ summary::-webkit-details-marker { display: none; }
     box-shadow: 0 -10px 30px rgba(0,0,0,.12);
     z-index: 9999;
     padding: 12px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
     background: #fff;
   }
 
@@ -179,38 +179,4 @@ summary::-webkit-details-marker { display: none; }
   /* slightly larger controls on mobile */
   input, select, textarea { font-size: 15px; padding: 12px; }
   button { font-size: 16px; padding: 12px; }
-
-  /* Mobile floating Map/Form toggle (BOTTOM RIGHT) */
-  .mobileToggle {
-    display: inline-flex;      /* <-- IMPORTANT: shown on mobile */
-    align-items: center;
-    gap: 10px;
-    position: fixed;
-    right: 14px;
-    bottom: 14px;
-    z-index: 20000;
-
-    width: auto;              /* override global button width */
-    margin: 0;                /* override global margin */
-
-    padding: 12px 14px;
-    border-radius: 999px;
-    border: 0;
-
-    background: #111;
-    color: #fff;
-    font-size: 14px;
-    font-weight: 800;
-
-    box-shadow: 0 12px 28px rgba(0,0,0,.18);
-  }
-
-  button.mobileToggle { width: auto; } /* safety against global rule */
-
-  .mobileToggleIcon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0.95;
-  }
 }
