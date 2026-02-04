@@ -1,4 +1,4 @@
-/* style.css — updated for compact form + nicer selects */
+/* style.css — compact form + nicer selects */
 
 html, body {
   height: 100%;
@@ -69,10 +69,8 @@ select {
   padding-right: 38px; /* room for the caret */
 }
 
-/* textarea small tweak */
 textarea { resize: vertical; min-height: 64px; }
 
-/* two-column rows */
 .row2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -80,13 +78,11 @@ textarea { resize: vertical; min-height: 64px; }
   align-items: start;
 }
 
-/* smaller grid for three-in-a-row groups (if used) */
 .row3 {
   display: grid;
   gap: 8px;
 }
 
-/* radio group labels (kept for backward compatibility) */
 .radioGroup label {
   display: block;
   margin: 8px 0;
@@ -94,7 +90,6 @@ textarea { resize: vertical; min-height: 64px; }
   font-weight: 500;
 }
 
-/* tiny helper text */
 small {
   display: block;
   color: #666;
@@ -103,7 +98,6 @@ small {
   font-size: 12px;
 }
 
-/* primary button */
 button {
   width: 100%;
   padding: 12px;
@@ -117,7 +111,6 @@ button {
   box-shadow: 0 6px 18px rgba(11,105,255,0.12);
 }
 
-/* hint box */
 .hint {
   font-size: 13px;
   background: #f6f7fb;
@@ -128,7 +121,6 @@ button {
   line-height: 1.35;
 }
 
-/* mode indicator */
 .mode {
   padding: 10px;
   border-radius: 10px;
@@ -162,16 +154,12 @@ summary {
 }
 
 summary:hover { background: rgba(0,0,0,0.02); }
-
 summary::-webkit-details-marker { display: none; }
-
-/* make the open details slightly different */
 details[open] { background: #fbfdff; }
 
 /* ---------- MOBILE BOTTOM SHEET ---------- */
 @media (max-width: 900px) {
   #layout { grid-template-columns: 1fr; }
-
   #map { height: 100vh; }
 
   #panel {
@@ -202,7 +190,43 @@ details[open] { background: #fbfdff; }
     margin: 0 auto 8px;
   }
 
-  /* slightly larger controls on mobile */
   input, select, textarea { font-size: 15px; padding: 12px; }
   button { font-size: 16px; padding: 12px; }
+
+  /* Floating Map/Form toggle — mobile only */
+  .mobileToggle {
+    position: fixed;
+    right: 14px;
+    bottom: 14px;        /* bottom-right */
+    z-index: 20000;      /* above panel + map */
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+
+    width: auto;         /* override global button width */
+    margin: 0;           /* override global margin */
+    padding: 12px 14px;
+
+    border-radius: 999px;
+    border: 0;
+
+    background: #111;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 800;
+
+    box-shadow: 0 12px 28px rgba(0,0,0,.18);
+  }
+
+  button.mobileToggle { width: auto; } /* extra safety vs global button rule */
+
+  .mobileToggleIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.95;
+  }
 }
+
+/* desktop: hide toggle */
+.mobileToggle { display: none; }
