@@ -71,8 +71,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  window.leafletMap = leafletMap;
-
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
     attribution: "&copy; OpenStreetMap contributors",
@@ -87,36 +85,31 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("load", () => setTimeout(safeInvalidate, 250));
   window.addEventListener("resize", () => setTimeout(safeInvalidate, 120));
 
-  /* ---------------- DRAFT MARKER ---------------- */
+  /* ---------------- DRAFT (TEMP) MARKER ---------------- */
   let draftMarker = null;
 
   function setDraftMarker(lat, lng) {
-    if (draftMarker) {
-      leafletMap.removeLayer(draftMarker);
-      draftMarker = null;
-    }
-
+    if (draftMarker) leafletMap.removeLayer(draftMarker);
     draftMarker = L.marker([lat, lng], { keyboard: false }).addTo(leafletMap);
     draftMarker.bindPopup("New restroom location").openPopup();
   }
 
   function clearDraftMarker() {
-    if (draftMarker) {
-      leafletMap.removeLayer(draftMarker);
-      draftMarker = null;
-    }
+    if (!draftMarker) return;
+    leafletMap.removeLayer(draftMarker);
+    draftMarker = null;
   }
 
   /* ---------------- PANEL CONTROL ---------------- */
   function openPanel() {
     if (isMobile()) panel.classList.add("open");
-    setTimeout(safeInvalidate, 250);
+    setTimeout(safeInvalidate, 200);
   }
 
   function togglePanel() {
     if (!isMobile()) return;
     panel.classList.toggle("open");
-    setTimeout(safeInvalidate, 250);
+    setTimeout(safeInvalidate, 200);
   }
 
   $("drawerHeader")?.addEventListener("click", togglePanel);
@@ -163,12 +156,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       m.on("popupopen", (e) => {
         const root = e.popup.getElement();
-        if (!root) return;
-        const btn = root.querySelector("[data-update]");
+        const btn = root?.querySelector("[data-update]");
         if (!btn) return;
 
         btn.onclick = () => {
-          clearDraftMarker(); // don’t show draft pin when editing existing
+          clearDraftMarker(); // no temp marker when editing existing
           fillForm(r, "update");
           openPanel();
         };
@@ -178,37 +170,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ---------------- FILL FORM ---------------- */
   function fillForm(r, mode) {
-    if (placeIdEl) placeIdEl.value = r.globalid || r.place_id || "";
-    if (actionEl) actionEl.value = mode;
-
+    placeIdEl.value = r.globalid || r.place_id || "";
+    actionEl.value = mode;
     setMode(mode);
 
-    if (auditDatetimeEl) auditDatetimeEl.value = r.audit_datetime || "";
-    if (restroomNameEl) restroomNameEl.value = r.restroom_name || r.name || "";
-    if (researcherNameEl) researcherNameEl.value = r.researcher_name || "";
+    auditDatetimeEl.value = r.audit_datetime || "";
+    restroomNameEl.value = r.restroom_name || r.name || "";
+    researcherNameEl.value = r.researcher_name || "";
 
-    if (addressEl) addressEl.value = r.address || "";
-    if (latEl) latEl.value = r.latitude || "";
-    if (lngEl) lngEl.value = r.longitude || "";
+    addressEl.value = r.address || "";
+    latEl.value = r.latitude || "";
+    lngEl.value = r.longitude || "";
 
-    if (openWhenVisitedEl) openWhenVisitedEl.value = r.open_when_visited || "";
-    if (hoursEl) hoursEl.value = r.advertised_hours || r.hours || "";
+    openWhenVisitedEl.value = r.open_when_visited || "";
+    hoursEl.value = r.advertised_hours || r.hours || "";
 
-    if (accessMethodEl) accessMethodEl.value = r.access_method || "";
-    if (findabilityEl) findabilityEl.value = r.findability || "";
+    accessMethodEl.value = r.access_method || "";
+    findabilityEl.value = r.findability || "";
 
-    if (genderNeutralEl) genderNeutralEl.value = r.gender_neutral || "";
-    if (menstrualProductsEl) menstrualProductsEl.value = r.menstrual_products || "";
-    if (showersEl) showersEl.value = r.showers_available || "";
-    if (waterRefillEl) waterRefillEl.value = r.water_refill_nearby || "";
-    if (signageEl) signageEl.value = r.visible_signage || "";
-    if (camerasEl) camerasEl.value = r.security_cameras || "";
-    if (adaEl) adaEl.value = r.ada_accessible || "";
+    genderNeutralEl.value = r.gender_neutral || "";
+    menstrualProductsEl.value = r.menstrual_products || "";
+    showersEl.value = r.showers_available || "";
+    waterRefillEl.value = r.water_refill_nearby || "";
+    signageEl.value = r.visible_signage || "";
+    camerasEl.value = r.security_cameras || "";
+    adaEl.value = r.ada_accessible || "";
 
-    if (accessBarriersEl) accessBarriersEl.value = r.access_barriers || "";
-    if (impressionsEl) impressionsEl.value = r.overall_impressions || "";
-    if (outsideEl) outsideEl.value = r.outside_context || "";
-    if (notesEl) notesEl.value = r.notes || "";
+    accessBarriersEl.value = r.access_barriers || "";
+    impressionsEl.value = r.overall_impressions || "";
+    outsideEl.value = r.outside_context || "";
+    notesEl.value = r.notes || "";
   }
 
   /* ---------------- MAP CLICK -> NEW RESTROOM ---------------- */
@@ -216,30 +207,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const lat = e.latlng.lat;
     const lng = e.latlng.lng;
 
-    setDraftMarker(lat, lng);     // 👈 show pin
+    setDraftMarker(lat, lng); // ✅ temp pin (mobile + desktop)
     fillForm({ latitude: lat, longitude: lng }, "new");
     openPanel();
   });
 
   /* ---------------- NEW RESTROOM BUTTON ---------------- */
-  const newRestroomBtn = $("newRestroomBtn");
-  if (newRestroomBtn) {
-    newRestroomBtn.addEventListener("click", () => {
-      clearDraftMarker();
-      form.reset();
-      if (actionEl) actionEl.value = "new";
-      setMode("new");
-      openPanel();
-      setTimeout(() => {
-        if (restroomNameEl) restroomNameEl.focus();
-      }, 200);
-    });
-  }
+  $("newRestroomBtn")?.addEventListener("click", () => {
+    // This button just prepares the form; user still clicks map to choose a point
+    clearDraftMarker();
+    form.reset();
+    actionEl.value = "new";
+    setMode("new");
+    openPanel();
+    setTimeout(() => restroomNameEl.focus(), 150);
+  });
 
   /* ---------------- SUBMIT ---------------- */
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    // iPhone/Safari help: reveal where the invalid field is
     if (!form.reportValidity()) {
       const invalid = form.querySelector(":invalid");
       if (invalid) {
@@ -255,35 +243,35 @@ document.addEventListener("DOMContentLoaded", () => {
     submitBtn.disabled = true;
 
     const payload = {
-      place_id: placeIdEl ? placeIdEl.value : "",
-      action: actionEl ? actionEl.value : "new",
+      place_id: placeIdEl.value,
+      action: actionEl.value,
 
-      audit_datetime: auditDatetimeEl ? auditDatetimeEl.value : "",
-      restroom_name: restroomNameEl ? restroomNameEl.value : "",
-      researcher_name: researcherNameEl ? researcherNameEl.value : "",
+      audit_datetime: auditDatetimeEl.value,
+      restroom_name: restroomNameEl.value,
+      researcher_name: researcherNameEl.value,
 
-      address: addressEl ? addressEl.value : "",
-      latitude: latEl ? latEl.value : "",
-      longitude: lngEl ? lngEl.value : "",
+      address: addressEl.value,
+      latitude: latEl.value,
+      longitude: lngEl.value,
 
-      open_when_visited: openWhenVisitedEl ? openWhenVisitedEl.value : "",
-      advertised_hours: hoursEl ? hoursEl.value : "",
+      open_when_visited: openWhenVisitedEl.value, // now includes "Permanently closed"
+      advertised_hours: hoursEl.value,
 
-      access_method: accessMethodEl ? accessMethodEl.value : "",
-      findability: findabilityEl ? findabilityEl.value : "",
+      access_method: accessMethodEl.value,
+      findability: findabilityEl.value,
 
-      gender_neutral: genderNeutralEl ? genderNeutralEl.value : "",
-      menstrual_products: menstrualProductsEl ? menstrualProductsEl.value : "",
-      showers_available: showersEl ? showersEl.value : "",
-      water_refill_nearby: waterRefillEl ? waterRefillEl.value : "",
-      visible_signage: signageEl ? signageEl.value : "",
-      security_cameras: camerasEl ? camerasEl.value : "",
-      ada_accessible: adaEl ? adaEl.value : "",
+      gender_neutral: genderNeutralEl.value,
+      menstrual_products: menstrualProductsEl.value,
+      showers_available: showersEl.value,
+      water_refill_nearby: waterRefillEl.value,
+      visible_signage: signageEl.value,
+      security_cameras: camerasEl.value,
+      ada_accessible: adaEl.value,
 
-      access_barriers: accessBarriersEl ? accessBarriersEl.value : "",
-      overall_impressions: impressionsEl ? impressionsEl.value : "",
-      outside_context: outsideEl ? outsideEl.value : "",
-      notes: notesEl ? notesEl.value : "",
+      access_barriers: accessBarriersEl.value,
+      overall_impressions: impressionsEl.value,
+      outside_context: outsideEl.value,
+      notes: notesEl.value,
     };
 
     try {
@@ -301,14 +289,15 @@ document.addEventListener("DOMContentLoaded", () => {
       setMode("new");
       panel.scrollTop = 0;
 
-      clearDraftMarker();  // 👈 remove the temporary pin after submit
+      clearDraftMarker(); // ✅ reset temp pin after submit
 
+      // Keep panel usable after submit (mobile + desktop)
       if (isMobile()) panel.classList.add("open");
-      setTimeout(safeInvalidate, 250);
+
+      setTimeout(safeInvalidate, 200);
     } catch (err) {
       console.error(err);
-      statusEl.textContent =
-        "Submit failed. Please check your connection and try again.";
+      statusEl.textContent = "Submit failed. Please check your connection and try again.";
       submitBtn.textContent = "Submit suggestion";
       submitBtn.disabled = false;
     }
@@ -318,17 +307,12 @@ document.addEventListener("DOMContentLoaded", () => {
   (async () => {
     try {
       const baseline = await loadCsv(BASELINE_CSV_URL);
-      const updates = (await loadCsv(UPDATES_CSV_URL)).filter((r) =>
-        toBool(r.approved)
-      );
+      const updates = (await loadCsv(UPDATES_CSV_URL)).filter((r) => toBool(r.approved));
 
       const latest = {};
       updates.forEach((u) => {
         if (!u.place_id) return;
-        if (
-          !latest[u.place_id] ||
-          Date.parse(u.timestamp) > Date.parse(latest[u.place_id].timestamp)
-        ) {
+        if (!latest[u.place_id] || Date.parse(u.timestamp) > Date.parse(latest[u.place_id].timestamp)) {
           latest[u.place_id] = u;
         }
       });
