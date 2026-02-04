@@ -1,29 +1,25 @@
-/* style.css — compact form + nicer selects */
-
 html, body {
   height: 100%;
   margin: 0;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   color: #111;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 #layout {
   display: grid;
-  grid-template-columns: 1fr 420px; /* panel width */
+  grid-template-columns: 1fr 420px;
   height: 100vh;
 }
 
 #map {
-  height: 100vh;     /* Leaflet needs a definite height */
-  min-width: 0;      /* prevents overflow pushing the panel */
+  height: 100vh;
+  min-width: 0;
 }
 
 #panel {
   background: #fff;
   padding: 16px;
-  overflow-y: auto;  /* panel scrolls, map stays */
+  overflow-y: auto;
   height: 100vh;
   box-sizing: border-box;
   border-left: 1px solid #e6e6e6;
@@ -42,15 +38,13 @@ input, select, textarea {
   width: 100%;
   padding: 9px 12px;
   margin-top: 6px;
-  font-size: 14px; /* comfortable size without iOS zoom */
+  font-size: 14px;
   box-sizing: border-box;
   border: 1px solid #d9d9d9;
   border-radius: 10px;
   background: #fff;
   color: #111;
-  transition: box-shadow .08s ease, border-color .08s ease;
   -webkit-appearance: none;
-  -moz-appearance: none;
   appearance: none;
 }
 
@@ -60,13 +54,12 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 4px rgba(122,167,255,0.12);
 }
 
-/* Give selects a caret on the right */
 select {
   background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="%23666" d="M5.5 7.5l4.5 4.5 4.5-4.5" /></svg>');
   background-repeat: no-repeat;
   background-position: right 10px center;
   background-size: 14px;
-  padding-right: 38px; /* room for the caret */
+  padding-right: 38px;
 }
 
 textarea { resize: vertical; min-height: 64px; }
@@ -75,27 +68,6 @@ textarea { resize: vertical; min-height: 64px; }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  align-items: start;
-}
-
-.row3 {
-  display: grid;
-  gap: 8px;
-}
-
-.radioGroup label {
-  display: block;
-  margin: 8px 0;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-small {
-  display: block;
-  color: #666;
-  margin-top: 6px;
-  line-height: 1.3;
-  font-size: 12px;
 }
 
 button {
@@ -133,14 +105,12 @@ button {
 
 #status { margin-top: 10px; font-size: 13px; color: #0b69ff; }
 
-/* ---- collapsible details ---- */
 details {
   border: 1px solid #e8e8e8;
   border-radius: 12px;
   padding: 10px 12px;
   margin: 10px 0;
   background: #fff;
-  box-shadow: 0 1px 0 rgba(0,0,0,0.02);
 }
 
 summary {
@@ -153,9 +123,12 @@ summary {
   border-radius: 8px;
 }
 
-summary:hover { background: rgba(0,0,0,0.02); }
 summary::-webkit-details-marker { display: none; }
-details[open] { background: #fbfdff; }
+
+/* Toggle hidden by default on desktop */
+.mobileToggle {
+  display: none;
+}
 
 /* ---------- MOBILE BOTTOM SHEET ---------- */
 @media (max-width: 900px) {
@@ -167,46 +140,60 @@ details[open] { background: #fbfdff; }
     left: 0;
     right: 0;
     bottom: 0;
+
     height: 72vh;
-    transform: translateY(calc(72vh - 64px));
+    transform: translateY(calc(72vh - 92px)); /* bigger “peek” so it's easy to grab */
     transition: transform 180ms ease;
+
     border-left: none;
     border-top: 1px solid #ddd;
     border-radius: 16px 16px 0 0;
     box-shadow: 0 -10px 30px rgba(0,0,0,.12);
     z-index: 9999;
     padding: 12px;
+    background: #fff;
   }
 
   #panel.open { transform: translateY(0); }
 
-  .drawerHeader { padding: 8px; cursor: pointer; }
-
-  .drawerHandle {
-    width: 44px;
-    height: 5px;
-    background: #ccc;
-    border-radius: 999px;
-    margin: 0 auto 8px;
+  /* Sticky, visible grab handle */
+  .drawerHeader {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 10000;
+    padding: 10px 8px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    margin: -12px -12px 10px;
   }
 
+  .drawerHandle {
+    width: 54px;
+    height: 6px;
+    background: #bbb;
+    border-radius: 999px;
+    margin: 0 auto;
+  }
+
+  /* slightly larger controls on mobile */
   input, select, textarea { font-size: 15px; padding: 12px; }
   button { font-size: 16px; padding: 12px; }
 
-  /* Floating Map/Form toggle — mobile only */
+  /* Mobile floating Map/Form toggle (BOTTOM RIGHT) */
   .mobileToggle {
-    position: fixed;
-    right: 14px;
-    bottom: 14px;        /* bottom-right */
-    z-index: 20000;      /* above panel + map */
-    display: inline-flex;
+    display: inline-flex;      /* <-- IMPORTANT: shown on mobile */
     align-items: center;
     gap: 10px;
+    position: fixed;
+    right: 14px;
+    bottom: 14px;
+    z-index: 20000;
 
-    width: auto;         /* override global button width */
-    margin: 0;           /* override global margin */
+    width: auto;              /* override global button width */
+    margin: 0;                /* override global margin */
+
     padding: 12px 14px;
-
     border-radius: 999px;
     border: 0;
 
@@ -218,7 +205,7 @@ details[open] { background: #fbfdff; }
     box-shadow: 0 12px 28px rgba(0,0,0,.18);
   }
 
-  button.mobileToggle { width: auto; } /* extra safety vs global button rule */
+  button.mobileToggle { width: auto; } /* safety against global rule */
 
   .mobileToggleIcon {
     display: inline-flex;
@@ -227,6 +214,3 @@ details[open] { background: #fbfdff; }
     opacity: 0.95;
   }
 }
-
-/* desktop: hide toggle */
-.mobileToggle { display: none; }
