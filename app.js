@@ -24,6 +24,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const isMobile = () => window.matchMedia("(max-width: 900px)").matches;
 
+  function fmtDate(s) {
+    const v = String(s ?? "").trim();
+    if (!v) return "";
+    const d = new Date(v);
+    if (isNaN(d.getTime())) return v; // fall back to raw string if parsing fails
+    return d.toLocaleString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
   /* ---------------- REQUIRED ELEMENTS ---------------- */
   const panel = $("panel");
   const form = $("surveyForm");
@@ -144,11 +158,71 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ---------------- MARKERS ---------------- */
   function popupHtml(r) {
+    const line = (label, val) => {
+      const v = String(val ?? "").trim();
+      if (!v) return "";
+      return `<div><strong>${esc(label)}:</strong> ${esc(v)}</div>`;
+    };
+
+    // Map baseline vs submission field names
+    const name = r.restroom_name || r.name || "";
+    const address = r.address || "";
+
+    const openStatus = r.open_when_visited || r.restroom_open_status || "";
+    const hours = r.advertised_hours || "";
+
+    const showers = r.showers_available || r.showers || "";
+    const ada = r.ada_accessible || "";
+    const genderNeutral = r.gender_neutral || "";
+    const menstrual = r.menstrual_products || "";
+
+    // Baseline-only fields
+    const babyChanging = r.baby_changing || "";
+    const category = r.category || "";
+    const operatedBy = r.operated_by || "";
+
+    // "Updated on" line: show only if this record includes an approved update timestamp
+    const updatedOn = r.timestamp ? fmtDate(r.timestamp) : "";
+    const updatedLine = updatedOn
+      ? `<div style="margin:6px 0 8px; font-size:12px; opacity:.8;">Updated on ${esc(updatedOn)}</div>`
+      : "";
+
     return `
-      <strong>${esc(r.restroom_name || r.name)}</strong><br>
-      ${esc(r.address || "")}<br>
-      ${esc(r.open_when_visited || r.restroom_open_status || "")}<br>
-      <button data-update type="button">Suggest a change</button>
+      <div class="popup">
+        <div style="font-weight:700; margin-bottom:4px;">
+          ${esc(name || "Restroom")}
+        </div>
+
+        ${address ? `<div style="margin-bottom:6px;">${esc(address)}</div>` : ""}
+
+        ${updatedLine}
+
+        ${line("Open status", openStatus)}
+        ${line("Hours", hours)}
+        ${line("Access method", r.access_method)}
+        ${line("Findability", r.findability)}
+
+        ${line("ADA accessible", ada)}
+        ${line("Gender neutral", genderNeutral)}
+        ${line("Menstrual products", menstrual)}
+        ${line("Showers", showers)}
+        ${line("Water refill nearby", r.water_refill_nearby)}
+        ${line("Visible signage", r.visible_signage)}
+        ${line("Security cameras", r.security_cameras)}
+
+        ${line("Baby changing", babyChanging)}
+        ${line("Category", category)}
+        ${line("Operated by", operatedBy)}
+
+        ${line("Access barriers", r.access_barriers)}
+        ${line("Overall impressions", r.overall_impressions)}
+        ${line("Outside context", r.outside_context)}
+        ${line("Notes", r.notes)}
+
+        <div style="margin-top:8px;">
+          <button data-update type="button">Suggest a change</button>
+        </div>
+      </div>
     `;
   }
 
@@ -194,16 +268,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (lngEl) lngEl.value = r.longitude || "";
 
     if (openWhenVisitedEl) openWhenVisitedEl.value = r.open_when_visited || "";
-    if (hoursEl) hoursEl.value = r.advertised_hours || r.hours || "";
+    if (hoursEl) hoursEl.value = r.advertised_hours || r.advertised_hours || "";
 
     if (accessMethodEl) accessMethodEl.value = r.access_method || "";
     if (findabilityEl) findabilityEl.value = r.findability || "";
 
     if (genderNeutralEl) genderNeutralEl.value = r.gender_neutral || "";
     if (menstrualProductsEl) menstrualProductsEl.value = r.menstrual_products || "";
-    if (showersEl) showersEl.value = r.showers_available || "";
+    if (showersEl) showersEl.value = r.showers_available || r.showers || "";
     if (waterRefillEl) waterRefillEl.value = r.water_refill_nearby || "";
-    if (signageEl) signageEl.value = r.visible_signage || "";
+    if (signageEl) signageEl.value = r.visible_signage || ""; // FIXED
     if (camerasEl) camerasEl.value = r.security_cameras || "";
     if (adaEl) adaEl.value = r.ada_accessible || "";
 
@@ -361,30 +435,31 @@ document.addEventListener("DOMContentLoaded", () => {
         toBool(r.approved)
       );
 
+      // Keep only the newest approved update per place_id (baseline uses globalid)
       const latest = {};
       updates.forEach((u) => {
-        if (!u.place_id) return;
-        if (
-          !latest[u.place_id] ||
-          Date.parse(u.timestamp) > Date.parse(latest[u.place_id].timestamp)
-        ) {
-          latest[u.place_id] = u;
+        const key = String(u.place_id ?? "").trim();
+        if (!key) return;
+
+        if (!latest[key] || Date.parse(u.timestamp) > Date.parse(latest[key].timestamp)) {
+          latest[key] = u;
         }
       });
 
-      const merged = baseline.map((b) =>
-        latest[b.globalid] ? { ...b, ...latest[b.globalid] } : b
-      );
+      // Merge by baseline.globalid <-> updates.place_id
+      const merged = baseline.map((b) => {
+        const key = String(b.globalid ?? "").trim();
+        return latest[key] ? { ...b, ...latest[key] } : b;
+      });
 
       drawMarkers(merged);
-setTimeout(safeInvalidate, 200);
+      setTimeout(safeInvalidate, 200);
 
-// 🔑 Ensure panel is visible on mobile on first load
-if (isMobile()) {
-  panel.classList.add("open");
-  setTimeout(safeInvalidate, 250);
-}
-
+      // 🔑 Ensure panel is visible on mobile on first load
+      if (isMobile()) {
+        panel.classList.add("open");
+        setTimeout(safeInvalidate, 250);
+      }
     } catch (err) {
       console.error("Failed to load baseline/updates CSV:", err);
     }
