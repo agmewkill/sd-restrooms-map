@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "3": "Library",
     // Add more as you learn them:
     // "1": "Park / Outdoor",
-    // "4": "Community center",
+    // "4": "Recreation center",
     // "5": "Transit / Transportation",
     // "6": "Commercial",
   };
@@ -279,9 +279,10 @@ document.addEventListener("DOMContentLoaded", () => {
         ${updatedOn ? `<div class="popupMeta">Updated (approved): ${esc(updatedOn)}</div>` : ""}
         ${assessedOn ? `<div class="popupMeta">Baseline assessed: ${esc(assessedOn)}</div>` : ""}
 
+        ${hours ? `<div class="hoursLine"><span class="hoursLabel">Hours</span> ${esc(hours)}</div>` : ""}
+
         <div class="chipRow">
           ${chip("Open", openStatus)}
-          ${chip("Hours", hours)}
           ${chip("ADA", ada)}
           ${chip("Gender-neutral", genderNeutral)}
           ${chip("Menstrual", menstrual)}
@@ -348,7 +349,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!btn) return;
 
         btn.onclick = () => {
-          clearDraftMarker();
+          clearDraftMarker(); // don’t show draft pin when editing existing
           fillForm(r, "update");
           openPanel();
         };
