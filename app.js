@@ -158,69 +158,108 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ---------------- MARKERS ---------------- */
   function popupHtml(r) {
-    const line = (label, val) => {
-      const v = String(val ?? "").trim();
-      if (!v) return "";
-      return `<div><strong>${esc(label)}:</strong> ${esc(v)}</div>`;
+    const val = (x) => String(x ?? "").trim();
+    const has = (x) => !!val(x);
+
+    // Prefer updated submission fields; fallback to baseline fields
+    const name = val(r.restroom_name || r.name || "Restroom");
+    const address = val(r.address);
+
+    const openStatus = val(r.open_when_visited || r.restroom_open_status);
+    const hours = val(r.advertised_hours);
+
+    const showers = val(r.showers_available || r.showers);
+    const ada = val(r.ada_accessible);
+    const genderNeutral = val(r.gender_neutral);
+    const menstrual = val(r.menstrual_products);
+
+    const updatedOn = has(r.timestamp) ? fmtDate(r.timestamp) : "";
+    const assessedOn = has(r.restroom_assessment_date) ? fmtDate(r.restroom_assessment_date) : "";
+
+    const chip = (label, value) => {
+      if (!has(value)) return "";
+      return `
+        <span class="chip">
+          <span class="chipLabel">${esc(label)}</span>
+          <span class="chipValue">${esc(value)}</span>
+        </span>
+      `;
     };
 
-    // Map baseline vs submission field names
-    const name = r.restroom_name || r.name || "";
-    const address = r.address || "";
+    const row = (label, value) => {
+      if (!has(value)) return "";
+      return `
+        <div class="kv">
+          <div class="k">${esc(label)}</div>
+          <div class="v">${esc(value)}</div>
+        </div>
+      `;
+    };
 
-    const openStatus = r.open_when_visited || r.restroom_open_status || "";
-    const hours = r.advertised_hours || "";
-
-    const showers = r.showers_available || r.showers || "";
-    const ada = r.ada_accessible || "";
-    const genderNeutral = r.gender_neutral || "";
-    const menstrual = r.menstrual_products || "";
-
-    // Baseline-only fields
-    const babyChanging = r.baby_changing || "";
-    const category = r.category || "";
-    const operatedBy = r.operated_by || "";
-
-    // "Updated on" line: show only if this record includes an approved update timestamp
-    const updatedOn = r.timestamp ? fmtDate(r.timestamp) : "";
-    const updatedLine = updatedOn
-      ? `<div style="margin:6px 0 8px; font-size:12px; opacity:.8;">Updated on ${esc(updatedOn)}</div>`
-      : "";
+    const googleMapsUrl =
+      has(r.latitude) && has(r.longitude)
+        ? `https://www.google.com/maps?q=${encodeURIComponent(r.latitude)},${encodeURIComponent(r.longitude)}`
+        : "";
 
     return `
       <div class="popup">
-        <div style="font-weight:700; margin-bottom:4px;">
-          ${esc(name || "Restroom")}
+        <div class="popupTitle">${esc(name)}</div>
+        ${address ? `<div class="popupAddr">${esc(address)}</div>` : ""}
+
+        ${updatedOn ? `<div class="popupMeta">Updated (approved): ${esc(updatedOn)}</div>` : ""}
+        ${(!updatedOn && assessedOn) ? `<div class="popupMeta">Baseline assessed: ${esc(assessedOn)}</div>` : ""}
+
+        <div class="chipRow">
+          ${chip("Open", openStatus)}
+          ${chip("Hours", hours)}
+          ${chip("ADA", ada)}
+          ${chip("Gender-neutral", genderNeutral)}
+          ${chip("Menstrual", menstrual)}
+          ${chip("Showers", showers)}
         </div>
 
-        ${address ? `<div style="margin-bottom:6px;">${esc(address)}</div>` : ""}
+        <details class="popupDetails">
+          <summary>More details</summary>
 
-        ${updatedLine}
+          <div class="section">
+            <div class="sectionTitle">Access & finding it</div>
+            ${row("Access method", r.access_method)}
+            ${row("Findability", r.findability)}
+          </div>
 
-        ${line("Open status", openStatus)}
-        ${line("Hours", hours)}
-        ${line("Access method", r.access_method)}
-        ${line("Findability", r.findability)}
+          <div class="section">
+            <div class="sectionTitle">Amenities & safety</div>
+            ${row("Water refill nearby", r.water_refill_nearby)}
+            ${row("Visible signage", r.visible_signage)}
+            ${row("Security cameras", r.security_cameras)}
+            ${row("Baby changing", r.baby_changing)}
+          </div>
 
-        ${line("ADA accessible", ada)}
-        ${line("Gender neutral", genderNeutral)}
-        ${line("Menstrual products", menstrual)}
-        ${line("Showers", showers)}
-        ${line("Water refill nearby", r.water_refill_nearby)}
-        ${line("Visible signage", r.visible_signage)}
-        ${line("Security cameras", r.security_cameras)}
+          <div class="section">
+            <div class="sectionTitle">About (baseline)</div>
+            ${row("Category", r.category)}
+            ${row("Operated by", r.operated_by)}
+            ${row("Baseline assessed?", r.restroom_assessed)}
+            ${row("Public buildings", r.public_buildings)}
+            ${row("Outdoor facilities", r.outdoor_facilities)}
+            ${row("Government facilities", r.government_facilities)}
+            ${row("Commercial", r.commercial)}
+            ${row("Transportation/MTS", r.transportation_mts)}
+            ${row("Other", r.other)}
+          </div>
 
-        ${line("Baby changing", babyChanging)}
-        ${line("Category", category)}
-        ${line("Operated by", operatedBy)}
+          <div class="section">
+            <div class="sectionTitle">Observations (update)</div>
+            ${row("Access barriers", r.access_barriers)}
+            ${row("Overall impressions", r.overall_impressions)}
+            ${row("Outside context", r.outside_context)}
+            ${row("Notes", r.notes)}
+          </div>
+        </details>
 
-        ${line("Access barriers", r.access_barriers)}
-        ${line("Overall impressions", r.overall_impressions)}
-        ${line("Outside context", r.outside_context)}
-        ${line("Notes", r.notes)}
-
-        <div style="margin-top:8px;">
-          <button data-update type="button">Suggest a change</button>
+        <div class="popupActions">
+          ${googleMapsUrl ? `<a class="popupLink" href="${googleMapsUrl}" target="_blank" rel="noopener">Open in Google Maps</a>` : ""}
+          <button class="popupBtn" data-update type="button">Suggest a change</button>
         </div>
       </div>
     `;
@@ -235,7 +274,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!lat || !lng) return;
 
       const m = L.marker([lat, lng]).addTo(leafletMarkers);
-      m.bindPopup(popupHtml(r));
+      m.bindPopup(popupHtml(r), { maxWidth: 360 });
 
       m.on("popupopen", (e) => {
         const root = e.popup.getElement();
@@ -268,7 +307,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (lngEl) lngEl.value = r.longitude || "";
 
     if (openWhenVisitedEl) openWhenVisitedEl.value = r.open_when_visited || "";
-    if (hoursEl) hoursEl.value = r.advertised_hours || r.advertised_hours || "";
+    if (hoursEl) hoursEl.value = r.advertised_hours || "";
 
     if (accessMethodEl) accessMethodEl.value = r.access_method || "";
     if (findabilityEl) findabilityEl.value = r.findability || "";
@@ -277,7 +316,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (menstrualProductsEl) menstrualProductsEl.value = r.menstrual_products || "";
     if (showersEl) showersEl.value = r.showers_available || r.showers || "";
     if (waterRefillEl) waterRefillEl.value = r.water_refill_nearby || "";
-    if (signageEl) signageEl.value = r.visible_signage || ""; // FIXED
+    if (signageEl) signageEl.value = r.visible_signage || "";
     if (camerasEl) camerasEl.value = r.security_cameras || "";
     if (adaEl) adaEl.value = r.ada_accessible || "";
 
@@ -344,7 +383,6 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     });
   } else if (useLocationBtn) {
-    // Browser doesn't support geolocation
     useLocationBtn.disabled = true;
     useLocationBtn.textContent = "Location not available";
   }
