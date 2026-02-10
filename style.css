@@ -180,3 +180,118 @@ summary::-webkit-details-marker { display: none; }
   input, select, textarea { font-size: 15px; padding: 12px; }
   button { font-size: 16px; padding: 12px; }
 }
+
+/* =========================================================
+   LEAFLET POPUP STYLES (CLEAN DISPLAY)
+   ========================================================= */
+
+.popup {
+  font-size: 13px;
+  line-height: 1.25;
+  min-width: 240px;
+}
+
+.popupTitle {
+  font-weight: 800;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.popupAddr {
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.popupMeta {
+  font-size: 12px;
+  opacity: 0.75;
+  margin-bottom: 8px;
+}
+
+/* ---- quick info chips ---- */
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid #e6e6e6;
+  background: #fafafa;
+  white-space: nowrap;
+}
+
+.chipLabel { opacity: 0.7; font-size: 12px; }
+.chipValue { font-weight: 700; font-size: 12px; }
+
+/* ---- collapsible details ---- */
+.popupDetails {
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 8px 10px;
+  margin: 10px 0 8px;
+  background: #fff;
+}
+
+.popupDetails summary {
+  font-weight: 800;
+  cursor: pointer;
+  margin: 0;
+}
+
+.section { margin-top: 10px; }
+
+.sectionTitle {
+  font-weight: 800;
+  margin: 8px 0 6px;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+/* key–value rows */
+.kv {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px dashed #f0f0f0;
+}
+
+.kv:last-child { border-bottom: none; }
+
+.k { opacity: 0.75; }
+.v { font-weight: 600; }
+
+/* ---- popup actions ---- */
+.popupActions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.popupLink {
+  font-size: 12px;
+  text-decoration: none;
+  color: #0b69ff;
+  font-weight: 700;
+}
+
+/* override global button width inside popups */
+.popupBtn {
+  width: auto;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #0b69ff;
+  color: #fff;
+  border: 0;
+  cursor: pointer;
+  box-shadow: none;
+}
